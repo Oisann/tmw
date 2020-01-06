@@ -104,8 +104,23 @@ def main():
             filePath = f"{path}/{today['day']}.txt"
 
             try:
-                with open(filePath, 'a') as file:
+                with open(filePath, 'a+') as file:
+                    #lines = file.readlines()
+                    #print(lines, filePath)
+                    #last = lines[-1]
+                    #if last.split(" - ")[1] == "End":
+                    #    print(f"{today['fulldate']} has already been ended...")
                     file.write(f"{today['timestamp']} - End")
+                    #for line in lines:
+                    #    p = line.split(" - ")
+                    #    if p[1] == "Start":
+                    #        # TODO: Add a way to remove breaks inbetween start and end.
+                    #        t = int(p[0])
+                    #        n = int(today['timestamp'])
+                    #        e = n - t
+                    #        duration = str(datetime.timedelta(seconds=e))
+                    #        print(f"You spent {duration} at work today.")
+                    #        break
             except FileNotFoundError:
                 with open(filePath, 'r'):
                     print(f"You have not started {today['fulldate']} yet!")
