@@ -42,7 +42,7 @@ def main():
             # Setup local path
             location = input("Where can the repo be found on your machine?: ")
             location_abs = os.path.abspath(location)
-            answer = input(f"Confirm this path is \"{location_abs}\" - y/N: ").lower()
+            answer = input(f"Confirm this path is \"{location_abs}\" - y/N: ").lower().strip()
             if answer != "y" and answer != "yes":
                 exit()
             
