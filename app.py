@@ -18,7 +18,6 @@ def ensureRepo():
     if not hasRepoSetup():
         print(f"Repo is not set up correctly! Please run '{sys.argv[0]} setup'.")
         exit()
-    
 
 def main():
     args = sys.argv[1:]
@@ -39,9 +38,7 @@ def main():
         elif mode == 'setup':
             # Setup a new git repo as a database
             if hasRepoSetup():
-                answer = input("You are about to overwrite an older setup. Are you sure about this? y/N: ").lower()
-                if answer != "y" and answer != "yes":
-                    exit()
+                print("NOTE: You already have TMW set up!")
             # Setup local path
             location = input("Where can the repo be found on your machine?: ")
             location_abs = os.path.abspath(location)
@@ -57,13 +54,14 @@ def main():
             settings = {
                 "location": location_abs,
                 "git": {
-                    remote: remote
+                    "remote": remote
                 }
             }
             output = json.dumps(settings)
-            # WHY DOESN'T THIS EXPORT THE VARIABLE????
-            os.environ["TMW_SETTINGS_OBJECT"] = output
-            print("Settings stored!")
+            print("Save the settings by running this command:")
+            print("")
+            print(f"export TMW_SETTINGS_OBJECT='{output}'")
+            print("")
 
 if __name__ == "__main__":
     main()
