@@ -78,9 +78,7 @@ def main():
             ensureRepo()
             gitPull()
             settings = hasRepoSetup(True)
-
             today = getToday()
-
             path = f"{settings['location']}/{today['year']}/{today['month']}"
             filePath = f"{path}/{today['day']}.txt"
             os.makedirs(path, exist_ok=True)
@@ -99,8 +97,24 @@ def main():
 
         elif mode == 'end':
             ensureRepo()
-            # End a day!
-            pass
+            gitPull()
+            settings = hasRepoSetup(True)
+            today = getToday()
+            path = f"{settings['location']}/{today['year']}/{today['month']}"
+            filePath = f"{path}/{today['day']}.txt"
+
+            try:
+                with open(filePath, 'a') as file:
+                    file.write(f"{today['timestamp']} - End")
+            except FileNotFoundError:
+                with open(filePath, 'r'):
+                    print(f"You have not started {today['fulldate']} yet!")
+                exit()
+                
+            gitCommit(f"Ended {today['fulldate']}")
+            gitPush()
+            print(f"Ended {today['fulldate']}")
+
         elif mode == 'update':
             ensureRepo()
             # Add an update
