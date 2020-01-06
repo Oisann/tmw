@@ -117,8 +117,28 @@ def main():
 
         elif mode == 'update':
             ensureRepo()
-            # Add an update
-            pass
+            if len(mode_args) == 0:
+                print("ERROR: You need to enter a reason when updating the log.")
+                exit()
+            reason = " ".join(mode_args)
+            gitPull()
+            settings = hasRepoSetup(True)
+            today = getToday()
+            path = f"{settings['location']}/{today['year']}/{today['month']}"
+            filePath = f"{path}/{today['day']}.txt"
+
+            try:
+                with open(filePath, 'a') as file:
+                    file.write(f"{today['timestamp']} - {reason}")
+            except FileNotFoundError:
+                with open(filePath, 'r'):
+                    print(f"You have not started {today['fulldate']} yet!")
+                exit()
+
+            gitCommit(f"Updated {today['fulldate']}")
+            gitPush()
+            print(f"Updated {today['fulldate']}")
+
         elif mode == 'setup':
             # Setup a new git repo as a database
             if hasRepoSetup():
