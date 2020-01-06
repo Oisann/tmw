@@ -53,37 +53,49 @@ def gitPush():
         return ""
     return result.strip()
 
+def getToday():
+    today = datetime.date.today()
+    fullDate = str(today.strftime("%d.%m.%Y"))
+    year = str(today.strftime("%Y"))
+    month = str(today.strftime("%m"))
+    day = str(today.strftime("%d"))
+    timestamp = int((datetime.datetime.now() - datetime.datetime(1970, 1, 1)).total_seconds())
+    return {
+        "today":today,
+        "year": year,
+        "month": month,
+        "day": day,
+        "timestamp": timestamp,
+        "fulldate": fullDate
+    }
+
 def main():
     args = sys.argv[1:]
     if args[0]:
         mode = args[0].lower()
+        mode_args = args[1:]
         if mode == 'start':
             ensureRepo()
             gitPull()
             settings = hasRepoSetup(True)
 
-            today = datetime.date.today()
-            fullDate = str(today.strftime("%d.%m.%Y"))
-            year = str(today.strftime("%Y"))
-            month = str(today.strftime("%m"))
-            day = str(today.strftime("%d"))
-            timestamp = int((datetime.datetime.now() - datetime.datetime(1970, 1, 1)).total_seconds())
+            today = getToday()
 
-            path = f"{settings['location']}/{year}/{month}"
-            filePath = f"{path}/{day}.txt"
+            path = f"{settings['location']}/{today['year']}/{today['month']}"
+            filePath = f"{path}/{today['day']}.txt"
             os.makedirs(path, exist_ok=True)
 
             try:
                 with open(filePath, 'r'):
-                    print(f"You have already started {fullDate}!")
+                    print(f"You have already started {today['fulldate']}!")
                 exit()
             except FileNotFoundError:
                 # TODO: Check if the previous day (work day, aka try to find the last file?) has ended. Maybe we forgot to end it...
                 with open(filePath, 'w') as file:
-                    file.write(f"{timestamp} - Start")
-            gitCommit(f"Started {fullDate}")
+                    file.write(f"{today['timestamp']} - Start")
+            gitCommit(f"Started {today['fulldate']}")
             gitPush()
-            print(f"Started {fullDate}")
+            print(f"Started {today['fulldate']}")
 
         elif mode == 'end':
             ensureRepo()
