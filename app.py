@@ -78,6 +78,7 @@ def main():
                     print(f"You have already started {fullDate}!")
                 exit()
             except FileNotFoundError:
+                # TODO: Check if the previous day (work day, aka try to find the last file?) has ended. Maybe we forgot to end it...
                 with open(filePath, 'w') as file:
                     file.write(f"{timestamp} - Start")
             gitCommit(f"Started {fullDate}")
