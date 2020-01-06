@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 
-import sys
 import os
+import sys
 import json
+import datetime
+import subprocess
 
-def hasRepoSetup():
+def hasRepoSetup(s = False):
     raw_settings = os.getenv("TMW_SETTINGS_OBJECT", "")
     if len(raw_settings) == 0:
         return False
@@ -12,6 +14,8 @@ def hasRepoSetup():
     if not settings:
         return False
     # Should probably check if the JSON object is valid...
+    if s:
+        return settings
     return True
 
 def ensureRepo():
@@ -19,14 +23,67 @@ def ensureRepo():
         print(f"Repo is not set up correctly! Please run '{sys.argv[0]} setup'.")
         exit()
 
+def gitPull():
+    settings = hasRepoSetup(True)
+    pull = subprocess.run(['git','pull'], cwd=settings["location"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+    result = pull.stdout
+    result = f"{result}\n{pull.stderr}"
+    if "Already up to date." in result:
+        return ""
+    return result.strip()
+
+def gitCommit(message, file = '.'):
+    settings = hasRepoSetup(True)
+    gitAdd = subprocess.run(['git','add', file, '-v'], cwd=settings["location"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+    result = gitAdd.stdout
+    result = f"{result}\n{gitAdd.stderr}"
+    if len(result.strip()) == 0:
+        return ""
+    gitCommit = subprocess.run(['git','commit', '-m', f"{message}"], cwd=settings["location"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+    result = f"{result}\n{gitCommit.stdout}"
+    result = f"{result}\n{gitCommit.stderr}"
+    return result.strip()
+
+def gitPush():
+    settings = hasRepoSetup(True)
+    push = subprocess.run(['git','push', settings["git"]["remote"], settings["git"]["branch"]], cwd=settings["location"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+    result = push.stdout
+    result = f"{result}\n{push.stderr}"
+    if "Everything up-to-date" in result:
+        return ""
+    return result.strip()
+
 def main():
     args = sys.argv[1:]
     if args[0]:
         mode = args[0].lower()
         if mode == 'start':
             ensureRepo()
-            # Start a new day!
-            pass
+            gitPull()
+            settings = hasRepoSetup(True)
+
+            today = datetime.date.today()
+            fullDate = str(today.strftime("%d.%m.%Y"))
+            year = str(today.strftime("%Y"))
+            month = str(today.strftime("%m"))
+            day = str(today.strftime("%d"))
+            timestamp = int((datetime.datetime.now() - datetime.datetime(1970, 1, 1)).total_seconds())
+
+            path = f"{settings['location']}/{year}/{month}"
+            filePath = f"{path}/{day}.txt"
+            os.makedirs(path, exist_ok=True)
+
+            try:
+                with open(filePath, 'r'):
+                    print(f"You have already started {fullDate}!")
+                exit()
+            except FileNotFoundError:
+                with open(filePath, 'w') as file:
+                    file.write(f"{timestamp} - Start")
+            gitCommit(f"Started {fullDate}")
+            gitPush()
+            print(f"Started {fullDate}")
+
         elif mode == 'end':
             ensureRepo()
             # End a day!
@@ -51,10 +108,18 @@ def main():
             if len(remote) == 0:
                 remote = "origin"
             print(f"Using git remote: {remote}")
+
+            # Confirm branch
+            branch = input("Set correct git branch (default: master): ").strip()
+            if len(branch) == 0:
+                branch = "master"
+            print(f"Using git branch: {branch}")
+
             settings = {
                 "location": location_abs,
                 "git": {
-                    "remote": remote
+                    "remote": remote,
+                    "branch": branch
                 }
             }
             output = json.dumps(settings)
