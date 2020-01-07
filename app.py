@@ -53,13 +53,18 @@ def gitPush():
         return ""
     return result.strip()
 
-def getToday():
-    today = datetime.date.today()
+def getToday(date=""):
+    if date != "":
+        today = datetime.datetime.strptime(date, "%d.%m.%Y")
+        now = today
+    else:
+        today = datetime.date.today()
+        now = datetime.datetime.now()
     fullDate = str(today.strftime("%d.%m.%Y"))
     year = str(today.strftime("%Y"))
     month = str(today.strftime("%m"))
     day = str(today.strftime("%d"))
-    timestamp = int((datetime.datetime.now() - datetime.datetime(1970, 1, 1)).total_seconds())
+    timestamp = int((now - datetime.datetime(1970, 1, 1)).total_seconds())
     return {
         "today":today,
         "year": year,
@@ -226,7 +231,7 @@ def main():
             ensureRepo()
             gitPull()
             settings = hasRepoSetup(True)
-            today = getToday()
+            today = getToday(" ".join(mode_args))
             path = f"{settings['location']}/{today['year']}/{today['month']}"
             filePath = f"{path}/{today['day']}.txt"
 
