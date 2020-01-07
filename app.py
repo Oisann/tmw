@@ -80,6 +80,33 @@ def getDuration(seconds):
             r.append(str(i))
     return ":".join(r)
 
+def getWorkDurationInSeconds(lines):
+    start = -1
+    end = -1
+    breakTime = 0
+    onBreak = -1
+    for line in lines:
+        l = line.strip().split(" - ")
+        if l[1].startswith("Start") and start == -1:
+            start = int(l[0])
+            continue
+        if start == -1:
+            continue
+        isBreak = l[1].startswith("-")
+        if onBreak >= 0:
+            if not isBreak:
+                breakTime += int(l[0]) - onBreak
+                onBreak = -1
+        else:
+            if isBreak:
+                onBreak = int(l[0])
+        if l[1].startswith("End") and end == -1:
+            end = int(l[0])
+            break
+    if end == -1:
+        end = getToday()["timestamp"]
+    return (end - start) - breakTime
+
 def main():
     args = sys.argv[1:]
     if args[0]:
@@ -121,17 +148,11 @@ def main():
                     if last.split(" - ")[1].startswith("End"):
                         print(f"{today['fulldate']} has already been ended...")
                         exit()
-                    file.write(f"\n{today['timestamp']} - End")
-                    for line in lines:
-                        p = line.split(" - ")
-                        if p[1].startswith("Start"):
-                            # TODO: Add a way to remove breaks inbetween start and end.
-                            t = int(p[0])
-                            n = int(today['timestamp'])
-                            e = n - t
-                            duration = getDuration(e)
-                            print(f"You spent {duration} at work today.")
-                            break
+                    endLine = f"\n{today['timestamp']} - End"
+                    file.write(endLine)
+                    lines.append(endLine)
+                    timeAtWork = getWorkDurationInSeconds(lines)
+                    print(f"You spent {getDuration(timeAtWork)} at work today!")
             except FileNotFoundError:
                 with open(filePath, 'r'):
                     print(f"You have not started {today['fulldate']} yet!")
@@ -203,7 +224,24 @@ def main():
 
         elif mode == 'status':
             ensureRepo()
-            print(getDuration(6000))
+            gitPull()
+            settings = hasRepoSetup(True)
+            today = getToday()
+            path = f"{settings['location']}/{today['year']}/{today['month']}"
+            filePath = f"{path}/{today['day']}.txt"
+
+            lines = []
+            try:
+                with open(filePath, 'r') as file:
+                    lines = file.readlines()
+            except FileNotFoundError:
+                with open(filePath, 'r'):
+                    print(f"You have not started {today['fulldate']} yet!")
+                exit()
+
+            s = getWorkDurationInSeconds(lines)
+            print(getDuration(s))
+
 
 if __name__ == "__main__":
     main()
