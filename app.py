@@ -117,11 +117,16 @@ def main():
     if args[0]:
         mode = args[0].lower()
         mode_args = args[1:]
+
+        if mode == 'break':
+            mode = 'update'
+            mode_args[0] = f"-{mode_args[0]}"
+
         if mode == 'start':
             ensureRepo()
             gitPull()
             settings = hasRepoSetup(True)
-            today = getToday()
+            today = getToday(" ".join(mode_args))
             path = f"{settings['location']}/{today['year']}/{today['month']}"
             filePath = f"{path}/{today['day']}.txt"
             os.makedirs(path, exist_ok=True)
@@ -142,7 +147,7 @@ def main():
             ensureRepo()
             gitPull()
             settings = hasRepoSetup(True)
-            today = getToday()
+            today = getToday(" ".join(mode_args))
             path = f"{settings['location']}/{today['year']}/{today['month']}"
             filePath = f"{path}/{today['day']}.txt"
 
