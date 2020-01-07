@@ -69,6 +69,17 @@ def getToday():
         "fulldate": fullDate
     }
 
+def getDuration(seconds):
+    t = str(datetime.timedelta(seconds=seconds)).split(":")
+    r = []
+    for n in t:
+        i = int(n)
+        if i < 10:
+            r.append(f"0{i}")
+        else:
+            r.append(str(i))
+    return ":".join(r)
+
 def main():
     args = sys.argv[1:]
     if args[0]:
@@ -104,23 +115,23 @@ def main():
             filePath = f"{path}/{today['day']}.txt"
 
             try:
-                with open(filePath, 'a+') as file:
-                    #lines = file.readlines()
-                    #print(lines, filePath)
-                    #last = lines[-1]
-                    #if last.split(" - ")[1] == "End":
-                    #    print(f"{today['fulldate']} has already been ended...")
-                    file.write(f"{today['timestamp']} - End")
-                    #for line in lines:
-                    #    p = line.split(" - ")
-                    #    if p[1] == "Start":
-                    #        # TODO: Add a way to remove breaks inbetween start and end.
-                    #        t = int(p[0])
-                    #        n = int(today['timestamp'])
-                    #        e = n - t
-                    #        duration = str(datetime.timedelta(seconds=e))
-                    #        print(f"You spent {duration} at work today.")
-                    #        break
+                with open(filePath, 'r+') as file:
+                    lines = file.readlines()
+                    last = lines[-1]
+                    if last.split(" - ")[1].startswith("End"):
+                        print(f"{today['fulldate']} has already been ended...")
+                        exit()
+                    file.write(f"\n{today['timestamp']} - End")
+                    for line in lines:
+                        p = line.split(" - ")
+                        if p[1].startswith("Start"):
+                            # TODO: Add a way to remove breaks inbetween start and end.
+                            t = int(p[0])
+                            n = int(today['timestamp'])
+                            e = n - t
+                            duration = getDuration(e)
+                            print(f"You spent {duration} at work today.")
+                            break
             except FileNotFoundError:
                 with open(filePath, 'r'):
                     print(f"You have not started {today['fulldate']} yet!")
@@ -144,7 +155,7 @@ def main():
 
             try:
                 with open(filePath, 'a') as file:
-                    file.write(f"{today['timestamp']} - {reason}")
+                    file.write(f"\n{today['timestamp']} - {reason}")
             except FileNotFoundError:
                 with open(filePath, 'r'):
                     print(f"You have not started {today['fulldate']} yet!")
@@ -189,6 +200,10 @@ def main():
             print("")
             print(f"export TMW_SETTINGS_OBJECT='{output}'")
             print("")
+
+        elif mode == 'status':
+            ensureRepo()
+            print(getDuration(6000))
 
 if __name__ == "__main__":
     main()
