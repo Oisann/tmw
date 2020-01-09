@@ -112,9 +112,9 @@ def getWorkDurationInSeconds(lines):
         end = getToday()["timestamp"]
     return (end - start) - breakTime
 
-def main():
-    args = sys.argv[1:]
-    if args[0]:
+def main(args):
+    args = args[1:]
+    if len(args) > 0:
         mode = args[0].lower()
         mode_args = args[1:]
 
@@ -162,7 +162,7 @@ def main():
                     file.write(endLine)
                     lines.append(endLine)
                     timeAtWork = getWorkDurationInSeconds(lines)
-                    print(f"You spent {getDuration(timeAtWork)} at work today!")
+                    print(f"You spent {getDuration(timeAtWork)} at work on {today['fulldate']}!")
             except FileNotFoundError:
                 print(f"You have not started {today['fulldate']} yet!")
                 exit()
@@ -184,8 +184,17 @@ def main():
             filePath = f"{path}/{today['day']}.txt"
 
             try:
-                with open(filePath, 'a') as file:
-                    file.write(f"\n{today['timestamp']} - {reason}")
+                with open(filePath, 'r+') as file:
+                    lines = file.readlines()
+                    last = lines[-1]
+                    if last.split(" - ")[1].startswith("End"):
+                        print(f"{today['fulldate']} has already been ended...")
+                        exit()
+                    endLine = f"\n{today['timestamp']} - {reason}"
+                    file.write(endLine)
+                    lines.append(endLine)
+                    timeAtWork = getWorkDurationInSeconds(lines)
+                    print(f"You spent {getDuration(timeAtWork)} at work on {today['fulldate']}!")
             except FileNotFoundError:
                 print(f"You have not started {today['fulldate']} yet!")
                 exit()
@@ -247,8 +256,9 @@ def main():
                 exit()
 
             s = getWorkDurationInSeconds(lines)
-            print(getDuration(s))
-
+            print(f"You have spent {getDuration(s)} at work on {today['fulldate']}.")
+    else:
+        main(["", "status"])
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv)
