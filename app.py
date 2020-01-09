@@ -164,8 +164,7 @@ def main():
                     timeAtWork = getWorkDurationInSeconds(lines)
                     print(f"You spent {getDuration(timeAtWork)} at work today!")
             except FileNotFoundError:
-                with open(filePath, 'r'):
-                    print(f"You have not started {today['fulldate']} yet!")
+                print(f"You have not started {today['fulldate']} yet!")
                 exit()
                 
             gitCommit(f"Ended {today['fulldate']}")
@@ -188,8 +187,7 @@ def main():
                 with open(filePath, 'a') as file:
                     file.write(f"\n{today['timestamp']} - {reason}")
             except FileNotFoundError:
-                with open(filePath, 'r'):
-                    print(f"You have not started {today['fulldate']} yet!")
+                print(f"You have not started {today['fulldate']} yet!")
                 exit()
 
             gitCommit(f"Updated {today['fulldate']}")
