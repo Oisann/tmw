@@ -245,8 +245,7 @@ def main():
                 with open(filePath, 'r') as file:
                     lines = file.readlines()
             except FileNotFoundError:
-                with open(filePath, 'r'):
-                    print(f"You have not started {today['fulldate']} yet!")
+                print(f"You have not started {today['fulldate']} yet!")
                 exit()
 
             s = getWorkDurationInSeconds(lines)
