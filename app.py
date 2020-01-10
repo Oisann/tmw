@@ -58,13 +58,13 @@ def getToday(date=""):
         today = datetime.datetime.strptime(date, "%d.%m.%Y")
         now = today
     else:
-        today = datetime.date.today()
-        now = datetime.datetime.now()
+        now = datetime.datetime.now(datetime.timezone.utc)
+        today = now.date()
     fullDate = str(today.strftime("%d.%m.%Y"))
     year = str(today.strftime("%Y"))
     month = str(today.strftime("%m"))
     day = str(today.strftime("%d"))
-    timestamp = int((now - datetime.datetime(1970, 1, 1)).total_seconds())
+    timestamp = int((now - datetime.datetime(1970, 1, 1, 0, 0, 0, 0, datetime.timezone.utc)).total_seconds())
     return {
         "today":today,
         "year": year,
@@ -111,6 +111,20 @@ def getWorkDurationInSeconds(lines):
     if end == -1:
         end = getToday()["timestamp"]
     return (end - start) - breakTime
+
+def allFilesIn(directory, endsWith=""):
+    all = []
+    for filename in os.listdir(directory):
+        p = os.path.abspath(f"{directory}/{filename}")
+        if os.path.isdir(p):
+            p1 = allFilesIn(p)
+            for f in p1:
+                if f.endswith(endsWith):
+                    all.append(f)
+        else:
+            if p.endswith(endsWith):
+                all.append(p)
+    return all
 
 def main(args):
     args = args[1:]
@@ -257,6 +271,26 @@ def main(args):
 
             s = getWorkDurationInSeconds(lines)
             print(f"You have spent {getDuration(s)} at work on {today['fulldate']}.")
+
+        #elif mode == 'migrate':
+        #    ensureRepo()
+        #    gitPull()
+        #    settings = hasRepoSetup(True)
+        #    
+        #    for f in allFilesIn(settings['location'], '.txt'):
+        #        with open(f, 'r+') as file:
+        #            print(f"Looking in {f}")
+        #            lines = file.readlines()
+        #            for index, line in enumerate(lines):
+        #                split = line.split(" - ")
+        #                timestamp = int(split[0])
+        #                newTimestamp = timestamp - 3600
+        #                print(f"\t{timestamp} -> {newTimestamp}")
+        #                lines[index] = f"{newTimestamp} - {split[1]}"
+        #            print(lines)
+        #            file.seek(0)
+        #            file.writelines(lines)
+
     else:
         main(["", "status"])
 
