@@ -55,7 +55,7 @@ def gitPush():
 
 def getToday(date=""):
     if date != "":
-        today = datetime.datetime.strptime(date, "%d.%m.%Y")
+        today = datetime.datetime.strptime(date, "%d.%m.%Y").replace(tzinfo=datetime.timezone.utc)
         now = today
     else:
         now = datetime.datetime.now(datetime.timezone.utc)
@@ -180,7 +180,7 @@ def main(args):
             except FileNotFoundError:
                 print(f"You have not started {today['fulldate']} yet!")
                 exit()
-                
+
             gitCommit(f"Ended {today['fulldate']}")
             gitPush()
             print(f"Ended {today['fulldate']}")
@@ -227,7 +227,7 @@ def main(args):
             answer = input(f"Confirm this path is \"{location_abs}\" - y/N: ").lower().strip()
             if answer != "y" and answer != "yes":
                 exit()
-            
+
             # Confirm remote
             remote = input("Set correct git remote (default: origin): ").strip()
             if len(remote) == 0:
@@ -257,6 +257,9 @@ def main(args):
             ensureRepo()
             gitPull()
             settings = hasRepoSetup(True)
+            raw = len(mode_args) > 0 and mode_args[0] == "plain"
+            if raw:
+                del mode_args[0]
             today = getToday(" ".join(mode_args))
             path = f"{settings['location']}/{today['year']}/{today['month']}"
             filePath = f"{path}/{today['day']}.txt"
@@ -270,13 +273,16 @@ def main(args):
                 exit()
 
             s = getWorkDurationInSeconds(lines)
-            print(f"You have spent {getDuration(s)} at work on {today['fulldate']}.")
+            if raw:
+                print(getDuration(s))
+            else:
+                print(f"You have spent {getDuration(s)} at work on {today['fulldate']}.")
 
         #elif mode == 'migrate':
         #    ensureRepo()
         #    gitPull()
         #    settings = hasRepoSetup(True)
-        #    
+        #
         #    for f in allFilesIn(settings['location'], '.txt'):
         #        with open(f, 'r+') as file:
         #            print(f"Looking in {f}")
